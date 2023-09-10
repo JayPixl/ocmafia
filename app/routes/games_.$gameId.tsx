@@ -3,6 +3,7 @@ import { LoaderFunction, json, redirect } from "@remix-run/node";
 import { Link, useLoaderData, useParams } from "@remix-run/react";
 import { v4 } from "uuid";
 import CharacterAvatar from "~/components/character-avatar";
+import GameMessage from "~/components/game-message";
 import GameToolbar from "~/components/game-toolbar";
 import Layout from "~/components/layout";
 import { GameCharacterStatusEmojis, RoleAlignmentEmojis } from "~/utils/constants";
@@ -25,7 +26,20 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         },
         include: {
             characterStatus: true,
-            events: true
+            events: {
+                include: {
+                    actor: {
+                        select: {
+                            name: true
+                        }
+                    },
+                    target: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
+            }
         }
     }) : undefined)
 
@@ -216,7 +230,14 @@ export default function Games() {
                     {currentPhase ? <Link to={`/games/${params.gameId}/reports/${currentPhase.id}`}>
                         <div><h3 className="text-xl font-semibold">{`${currentPhase.time} ${currentPhase.dayNumber} Report 🔎`}</h3></div>
                         {currentPhase.events?.map((event: EventWithMods) => <div className="text-lg ml-2" key={event.id}>
-                            <div>{event.message}</div>
+                            <div>
+                                <GameMessage
+                                    actor={event.actor ? { name: event?.actor?.name || '', id: event.actorId || '' } : undefined}
+                                    target={event.target ? { name: event?.target?.name || '', id: event.targetId || '' } : undefined}
+                                >
+                                    {event.message}
+                                </GameMessage>
+                            </div>
                             <div>{event?.clues.map(clue => <div className="text-sm ml-2" key={v4()}>
                                 {clue}
                             </div>)}

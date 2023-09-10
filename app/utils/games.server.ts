@@ -742,7 +742,9 @@ export const manageReports: (
                     },
                     actions: {
                         create: {
-
+                            actions: {
+                                set: []
+                            }
                         }
                     }
                 }
@@ -1417,6 +1419,8 @@ export const editActions: (
     if (!gameRoles) return {
         error: "Could not find game roles"
     }
+
+    console.log(phaseId, phase.id)
 
     const actions = await prisma.phaseActions.findUnique({
         where: {

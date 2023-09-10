@@ -10,6 +10,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     const { authorized } = await requireHost(request, game.id)
     if (!authorized) return redirect(`/games/${params.gameId}`)
 
+    if (game.status === "COMPLETED") return redirect(`/games/${params.gameId}/edit`)
+
     await prisma.game.update({
         where: {
             id: game.id
