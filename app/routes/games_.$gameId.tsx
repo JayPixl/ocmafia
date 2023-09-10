@@ -228,9 +228,9 @@ export default function Games() {
 
                 {game?.status !== 'ENLISTING' ? <div className="flex flex-col my-5">
                     {currentPhase ? <Link to={`/games/${params.gameId}/reports/${currentPhase.id}`}>
-                        <div><h3 className="text-xl font-semibold">{`${currentPhase.time} ${currentPhase.dayNumber} Report 🔎`}</h3></div>
-                        {currentPhase.events?.map((event: EventWithMods) => <div className="text-lg ml-2" key={event.id}>
-                            <div>
+                        <div><h3 className="text-2xl font-semibold pt-3 underline">{`${currentPhase.time} ${currentPhase.dayNumber} Report 🔎`}</h3></div>
+                        {currentPhase.events?.map((event: EventWithMods) => <div className="text-xl ml-2" key={event.id}>
+                            <div className="pt-2">
                                 <GameMessage
                                     actor={event.actor ? { name: event?.actor?.name || '', id: event.actorId || '' } : undefined}
                                     target={event.target ? { name: event?.target?.name || '', id: event.targetId || '' } : undefined}
@@ -238,22 +238,16 @@ export default function Games() {
                                     {event.message}
                                 </GameMessage>
                             </div>
-                            <div>{event?.clues.map(clue => <div className="text-sm ml-2" key={v4()}>
+                            <div>{event?.clues.map((clue) => <div className="italic ml-2" key={v4()}>
                                 {clue}
                             </div>)}
                             </div>
                         </div>)}
                     </Link> : <>
-                        <div><h3 className="text-xl font-semibold">{`No Reports Yet!`}</h3></div>
+                        <div><h3 className="text-2xl font-semibold">{`No Reports Yet!`}</h3></div>
                     </> || <>
                         <div>No Reports Yet!</div>
                     </>}
-
-                    <div className="text-lg underline hover:no-underline py-2">
-                        <Link to={`/games/${params.gameId}/reports/`}>
-                            All Reports →
-                        </Link>
-                    </div>
                 </div>
                     : ''}
             </div>

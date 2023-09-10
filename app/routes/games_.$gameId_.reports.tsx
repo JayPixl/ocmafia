@@ -44,7 +44,7 @@ export default function Reports() {
                 <div><h2 className="text-3xl font-bold py-5">All Reports</h2></div>
 
                 <div className="w-full flex flex-col bg-dogwood text-licorice-800 rounded-lg p-5">
-                    {game?.phases?.map((phase: PhaseWithMods) => (phase?.events?.filter(events => events.draft === false)?.length !== 0) ? <Link to={`/games/${params.gameId}/reports/${phase.id}`} key={phase.id} className="group py-2">
+                    {game?.phases?.sort((a: PhaseWithMods, b: PhaseWithMods) => { if (a.dayNumber > b.dayNumber || (a.dayNumber === b.dayNumber && a.time === "NIGHT")) { return -1 } else return 1 })?.map((phase: PhaseWithMods) => (phase?.events?.filter(events => events.draft === false)?.length !== 0) ? <Link to={`/games/${params.gameId}/reports/${phase.id}`} key={phase.id} className="group py-2">
                         <div><h3 className="text-xl font-semibold underline group-hover:no-underline">{`${phase.time} ${phase.dayNumber} Report 🔎`}</h3></div>
                         {phase?.events?.filter(event => event.draft === false)?.map(event => <div className="text-lg" key={event.id}>
                             <div className="ml-2">
