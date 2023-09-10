@@ -1,0 +1,17 @@
+node_modules
+
+.cache
+.env
+.vercel
+.output
+
+/build/
+/public/build
+/api/index.js
+/api/index.js.map
+
+/app/routes/test.jsx
+
+fly.toml
+Dockerfile
+.dockerignore

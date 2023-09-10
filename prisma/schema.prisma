@@ -1,0 +1,390 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  username       String    @unique
+  slug           String
+  password       String
+  clearance      Clearance @default(USER)
+  avatar         Avatar
+  crowns         Int
+  rubies         Int
+  tagline        String?
+  characterLimit Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  characters    Character[] @relation("OwnedCharacters")
+  activeGame    Game?       @relation(references: [id], fields: [activeGameId], "PlayerParticipant")
+  activeGameId  String?     @db.ObjectId
+  hostingGame   Game?       @relation(references: [id], fields: [hostingGameId], "GameHosts")
+  hostingGameId String?     @db.ObjectId
+  inbox         Inbox?      @relation("Inbox")
+
+  followedBy    User[]   @relation("UserFollows", fields: [followedByIDs], references: [id])
+  followedByIDs String[] @db.ObjectId
+  following     User[]   @relation("UserFollows", fields: [followingIDs], references: [id])
+  followingIDs  String[] @db.ObjectId
+}
+
+model Inbox {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  inboxItems InboxItem[]
+  user       User        @relation("Inbox", fields: [userId], references: [id])
+  userId     String      @unique @db.ObjectId
+}
+
+model Character {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name        String
+  displayName String
+  pronouns    String
+  status      CharacterStatus
+
+  stats            Stats
+  specialAbility   SpecialAbility
+  crowns           Int
+  strikes          Int
+  description      String
+  avatarUrl        String?
+  featuredImageUrl String?
+  galleryUrls      String[]
+  profileLink      Link?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  currentGameId String?
+
+  owner         User     @relation(references: [id], fields: [ownerId], onDelete: Cascade, "OwnedCharacters")
+  ownerId       String   @db.ObjectId
+  activeGames   Game[]   @relation(references: [id], fields: [activeGameIds], "CharacterParticipant")
+  activeGameIds String[] @db.ObjectId
+
+  actorInEvents  Event[] @relation("EventActor")
+  targetInEvents Event[] @relation("EventTarget")
+
+  @@unique([name, ownerId])
+}
+
+model Game {
+  id       String      @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  location String
+  status   GameStatus?
+
+  winnerCrowns Int
+  winnerRubies Int
+  loserStrikes Int
+  loserRubies  Int
+
+  pendingInviteIds String[]
+  joinRequestIds   String[]
+
+  activeRoleIds  String[]   @db.ObjectId
+  gameWinnerIds  String[]   @db.ObjectId
+  winningFaction Alignment?
+
+  playerCount Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  currentPhaseId            String?
+  phases                    Phase[]               @relation("GamePhases")
+  currentDay                Int?                  @default(1)
+  characterStatuses         GameCharacterStatus[]
+  hosts                     User[]                @relation("GameHosts")
+  participatingCharacters   Character[]           @relation(fields: [participatingCharacterIds], references: [id], "CharacterParticipant")
+  participatingCharacterIds String[]              @db.ObjectId
+  participatingPlayers      User[]                @relation("PlayerParticipant")
+  gameMessages              EventMessages?        @relation("GameEventMessages")
+  gameRoles                 GameRoles?            @relation("GameRoles")
+
+  chatRooms GameChatRoom[] @relation("GameChatRoom")
+}
+
+model Phase {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  draft Boolean?
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  time      Time
+  dayNumber Int
+
+  game            Game                      @relation(references: [id], fields: [gameId], onDelete: Cascade, "GamePhases")
+  gameId          String                    @db.ObjectId
+  events          Event[]                   @relation("PhaseEvents")
+  characterStatus PhaseCharacterGameStatus? @relation("PhaseGameCharacterStatus")
+  actions         PhaseActions?             @relation("GamePhaseActions")
+
+  @@unique([time, dayNumber, gameId])
+}
+
+model PhaseActions {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  actions PhaseCharacterActions[]
+
+  phase   Phase  @relation(fields: [phaseId], references: [id], onDelete: Cascade, "GamePhaseActions")
+  phaseId String @unique @db.ObjectId
+}
+
+model Event {
+  id      String     @id @default(auto()) @map("_id") @db.ObjectId
+  draft   Boolean
+  type    EventTypes
+  message String
+
+  clues String[]
+
+  actor    Character? @relation(references: [id], fields: [actorId], "EventActor")
+  actorId  String?    @db.ObjectId
+  target   Character? @relation(references: [id], fields: [targetId], "EventTarget")
+  targetId String?    @db.ObjectId
+
+  phase   Phase  @relation(fields: [phaseId], references: [id], onDelete: Cascade, "PhaseEvents")
+  phaseId String @db.ObjectId
+}
+
+model Role {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  alignment   Alignment
+  description String
+  imageUrl    String?
+  meetings    Alignment[]
+  disguise    Alignment?
+
+  dayActions   ActionType[]
+  nightActions ActionType[]
+}
+
+model EventMessages {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  game   Game   @relation(references: [id], fields: [gameId], onDelete: Cascade, "GameEventMessages")
+  gameId String @unique @db.ObjectId
+
+  messages EventMessage[]
+}
+
+model GameRoles {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  game   Game   @relation(references: [id], fields: [gameId], onDelete: Cascade, "GameRoles")
+  gameId String @unique @db.ObjectId
+
+  assignedRoles CharGameRolePairing[]
+}
+
+model PhaseCharacterGameStatus {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  status CharGameStatusPairing[]
+
+  phase   Phase  @relation(references: [id], fields: [phaseId], onDelete: Cascade, "PhaseGameCharacterStatus")
+  phaseId String @unique @db.ObjectId
+}
+
+model GameChatRoom {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name String
+
+  game   Game   @relation(references: [id], fields: [gameId], onDelete: Cascade, "GameChatRoom")
+  gameId String @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  type ChatRoomType
+
+  allowedPlayerIds String[]
+
+  messages GameChatMessage[] @relation("GameChatRoomMessage")
+}
+
+model GameChatMessage {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  content String
+
+  senderType SenderType
+
+  senderId          String
+  senderAvatarUrl   String?
+  senderProfileLink String?
+  senderName        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  room   GameChatRoom @relation(references: [id], fields: [roomId], onDelete: Cascade, "GameChatRoomMessage")
+  roomId String       @db.ObjectId
+}
+
+type CharGameStatusPairing {
+  characterId   String              @db.ObjectId
+  characterName String
+  status        GameCharacterStatus
+}
+
+type PhaseCharacterActions {
+  characterId     String     @db.ObjectId
+  characterName   String
+  characterRoleId String     @db.ObjectId
+  actionId        String     @default(uuid())
+  actionType      ActionType
+  actionTargetId  String?
+  actionStrategy  String?
+}
+
+type CharGameRolePairing {
+  characterId   String    @db.ObjectId
+  characterName String
+  roleName      String
+  notes         String?
+  roleId        String    @db.ObjectId
+  roleAlignment Alignment
+}
+
+type EventMessage {
+  event   EventTypes
+  message String
+}
+
+type Link {
+  display String?
+  url     String
+}
+
+type InboxItem {
+  uniqueId String @default(uuid())
+
+  type      MessageTypes
+  message   String
+  read      Boolean
+  createdAt DateTime     @default(now())
+  link      String?
+  senderId  String?
+}
+
+type SpecialAbility {
+  name        String
+  description String
+}
+
+type Stats {
+  strength Int
+  stealth  Int
+  skill    Int
+  charisma Int
+}
+
+type Avatar {
+  avatarType  AvatarTypes  @default(COLOR)
+  avatarColor AvatarColors @default(BLUE)
+  avatarUrl   String?
+}
+
+enum AvatarTypes {
+  IMAGE
+  COLOR
+}
+
+enum AvatarColors {
+  RED
+  BLUE
+  GREEN
+}
+
+enum Clearance {
+  USER
+  ADMIN
+}
+
+enum GameCharacterStatus {
+  ALIVE
+  WOUNDED
+  DEAD
+}
+
+enum CharacterStatus {
+  ACTIVE
+  BANNED
+}
+
+enum Alignment {
+  TOWN
+  MAFIA
+  NEUTRAL
+  HOSTILE
+}
+
+enum Time {
+  DAY
+  NIGHT
+}
+
+enum EventTypes {
+  KILL
+  VOTING_EXECUTION
+  WOUND
+  VOTING_SKIP
+  RESURRECTION
+  QUIET_NIGHT
+  GAME_START
+  GAME_END
+}
+
+enum GameStatus {
+  ENLISTING
+  ONGOING
+  COMPLETED
+}
+
+enum MessageTypes {
+  GAME_INVITE
+  PLAYER_JOINED
+  PHASE_PUBLISHED
+  GAME_COMPLETED
+  NEW_FOLLOWER
+}
+
+enum ActionType {
+  VOTE
+  MAFIA_KILL
+  INDEPENDENT_KILL
+  INVESTIGATE
+  ANGEL_PROTECT
+}
+
+enum ChatRoomType {
+  MEETING_ROOM
+  PRIVATE
+  ROLEPLAY
+  PRE_GAME
+  POST_GAME
+}
+
+enum SenderType {
+  PARTICIPANT_CHARACTER
+  HOST_USER
+  SPECTATOR_USER
+}
