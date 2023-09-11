@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt'
 import { Clearance, User } from "@prisma/client";
 import { clearanceMap } from "./constants";
 
-const saltRounds: number = 10;
+export const saltRounds: number = 10;
 
 const secret = process.env.SESSION_SECRET;
 if (!secret) {
@@ -19,7 +19,8 @@ interface LoginForm {
 }
 
 interface SignupForm extends LoginForm {
-
+    securityQuestion?: string,
+    securityAnswer?: string
 }
 
 const storage = createCookieSessionStorage({
@@ -38,7 +39,7 @@ export const login: (form: LoginForm) => Promise<{
     error: any,
     fields?: any,
     status?: number,
-    redirect?: any
+    redirectTo?: any
 }> = async (form) => {
 
     let match = (await prisma.user.findMany({
@@ -50,6 +51,8 @@ export const login: (form: LoginForm) => Promise<{
         }
     }))[0]
 
+    console.log(match?.username, await bcrypt.compare(form.password, match?.password))
+
     if (!match || !await bcrypt.compare(form.password, match?.password)) return { fields: { ...form }, error: "Username or password is incorrect", status: 404 }
 
     return createUserSession(match.id, form.redirectTo as string || '/')
@@ -59,7 +62,7 @@ export const signup: (form: SignupForm) => Promise<{
     error: any,
     fields?: any,
     fieldErrors?: any,
-    redirect?: any,
+    redirectTo?: any,
     status?: number
 }> = async (form) => {
 
@@ -101,7 +104,7 @@ export const createUser: (form: SignupForm) => Promise<any> = async (form: Signu
 }
 
 export const createUserSession: (userId: string, redirectTo: string) => Promise<{
-    redirect: {
+    redirectTo: {
         path: string,
         body: any
     },
@@ -110,7 +113,7 @@ export const createUserSession: (userId: string, redirectTo: string) => Promise<
     const session = await storage.getSession();
     session.set('userId', userId);
     return {
-        redirect: {
+        redirectTo: {
             path: redirectTo,
             body: {
                 headers: {
@@ -149,7 +152,9 @@ export const getUser: (request: Request, password?: boolean) => Promise<{
 
     if (!password) user = {
         ...user,
-        password: 'hidden'
+        password: 'hidden',
+        securityQuestion: 'hidden',
+        securityAnswer: 'hidden'
     }
 
     return { user }

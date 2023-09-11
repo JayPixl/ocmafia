@@ -10,7 +10,7 @@ export const getProfileData: (request: Request, params: Params) => Promise<{
     profileData?: any,
     following?: boolean,
 }> = async (request: Request, params: Params) => {
-    let { user } = await getUser(request)
+    let { user } = await getUser(request, true)
 
     const data = (await prisma.user.findFirst({
         where: {
@@ -64,26 +64,31 @@ export const updateUserProfile: (
         avatarColor?: AvatarColors,
         avatarUrl?: string
     },
-    tagline?: string) => Promise<{
-        error?: string
-    }> = async (request, avatar, tagline) => {
-        const { user } = await getUser(request)
-        if (!user) return { error: "Could not find user in database" }
+    tagline?: string,
+    securityQuestion?: string,
+    securityAnswer?: string
+) => Promise<{
+    error?: string
+}> = async (request, avatar, tagline, securityQuestion, securityAnswer) => {
+    const { user } = await getUser(request)
+    if (!user) return { error: "Could not find user in database" }
 
-        const result = await prisma.user.update({
-            where: {
-                id: user.id
-            },
-            data: {
-                avatar,
-                tagline
-            }
-        })
+    const result = await prisma.user.update({
+        where: {
+            id: user.id
+        },
+        data: {
+            avatar,
+            tagline,
+            securityAnswer,
+            securityQuestion
+        }
+    })
 
-        if (!result) return { error: "Could not update user profile" }
+    if (!result) return { error: "Could not update user profile" }
 
-        return { error: undefined }
-    }
+    return { error: undefined }
+}
 
 export const followUser: (
     request: Request,

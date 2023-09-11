@@ -14,19 +14,12 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export const action: ActionFunction = async ({ request }) => {
     const form = await request.formData()
-    const username = form.get("username")
-    const password = form.get("password")
-    const confirmPassword = form.get("confirmPassword")
-    const action = form.get("_action")
-
-    if (
-        typeof username !== 'string' ||
-        typeof password !== 'string' ||
-        (action === 'signup' && typeof confirmPassword !== 'string') ||
-        typeof action !== 'string'
-    ) {
-        return json({ error: "Invalid data format" }, { status: 404 })
-    }
+    const username = form.get("username") as string
+    const password = form.get("password") as string
+    const confirmPassword = form.get("confirmPassword") as string
+    const action = form.get("_action") as string
+    const securityQuestion = (form.get("securityQuestion") as string) || undefined
+    const securityAnswer = (form.get("securityAnswer") as string) || undefined
 
     if (action === 'signup' && password !== confirmPassword) {
         return json({
@@ -38,27 +31,35 @@ export const action: ActionFunction = async ({ request }) => {
         })
     }
 
+    if (!securityQuestion !== !securityAnswer) return json({
+        error: "Must provide security question and answer!",
+        fields: { username, password, confirmPassword, action, securityQuestion, securityAnswer }
+    })
+
     const searchParams = new URL(request.url).searchParams.get('redirectTo') || '/'
 
     switch (action) {
         case 'login': {
-            const result = await login({ username, password, action, redirectTo: searchParams })
-            if (result.error) return json({ action, error: result.error, fields: result?.fields || null }, { status: result?.status || 400 })
-            else return redirect(result?.redirect?.path || '/', result?.redirect?.body || {})
+            const { error, fields, status, redirectTo } = await login({ username, password, action, redirectTo: searchParams })
+            if (error) return json({ action, error, fields }, { status: status || 400 })
+            console.log(redirect)
+            return redirect(redirectTo?.path || '/', redirectTo?.body || undefined)
+            break
         }
         case 'signup': {
-            var fieldErrors = {
-                username: validateUsername(username as string),
-                password: validatePassword(password as string)
+            var myFieldErrors = {
+                username: validateUsername(username),
+                password: validatePassword(password)
             }
 
-            if (Object.values(fieldErrors).some(Boolean)) {
-                return json({ fields: { username, password }, fieldErrors })
+            if (Object.values(myFieldErrors).some(Boolean)) {
+                return json({ fields: { username, password }, myFieldErrors })
             }
 
-            const result = await signup({ username, password, action, redirectTo: searchParams })
-            if (result.error) return json({ action, error: result.error, fields: result?.fields || null, fieldErrors: result?.fieldErrors || null }, { status: result?.status || 400 })
-            else return redirect(result?.redirect?.path || '/', result?.redirect?.body || {})
+            const { error, fields, fieldErrors, status, redirectTo } = await signup({ username, password, action, securityAnswer, securityQuestion, redirectTo: searchParams })
+            if (error) return json({ action, error, fields, fieldErrors }, { status: status || 400 })
+            else return redirect(redirectTo?.path || '/', redirectTo?.body || {})
+            break
         }
         default: {
             return json({ error: "Invalid form action" }, { status: 400 })
@@ -72,7 +73,9 @@ export default function Login() {
     const [inputs, setInputs] = useState({
         username: actionData?.fields?.username || '',
         password: actionData?.fields?.password || '',
-        confirmPassword: actionData?.fields?.confirmPassword || ''
+        confirmPassword: actionData?.fields?.confirmPassword || '',
+        securityQuestion: actionData?.fields?.securityQuestion || '',
+        securityAnswer: actionData?.fields?.securityAnswer || '',
     })
 
     const [formError] = useState(actionData?.error || '')
@@ -118,6 +121,27 @@ export default function Login() {
                             value={inputs.confirmPassword}
                             display="Confirm Password"
                             error={actionData?.fieldErrors?.confirmPassword}
+                        />}
+                        {login !== 'login' && <InputField
+                            type="text"
+                            onChange={e => handleChange(e, 'securityQuestion')}
+                            name="securityQuestion"
+                            value={inputs.securityQuestion}
+                            display="Security Question (Recommended)"
+                            error={actionData?.fieldErrors?.securityQuestion}
+                            maxLength={100}
+                        />}
+                        {login !== 'login' && <div className="text-bittersweet my-2 italic">
+                            WARNING! Make sure this is secure as someone could hack your account if they guess your question correctly.
+                        </div>}
+                        {login !== 'login' && <InputField
+                            type="text"
+                            onChange={e => handleChange(e, 'securityAnswer')}
+                            name="securityAnswer"
+                            value={inputs.securityAnswer}
+                            display="Security Answer"
+                            error={actionData?.fieldErrors?.securityAnswer}
+                            maxLength={25}
                         />}
                         <div
                             onClick={() => setLogin(login == 'login' ? 'signup' : 'login')}
