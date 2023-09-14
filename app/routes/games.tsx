@@ -78,7 +78,7 @@ export default function Games() {
                     <div className="flex flex-col w-full">
                         <div className="w-full flex flex-col items-center justify-center xl:justify-start">
                             <input
-                                className="max-w-[30rem] w-[20rem] px-3 py-2 text-xl text-licorice-800 m-5 rounded-full"
+                                className="max-w-[30rem] md:w-[20rem] w-full px-3 py-2 text-xl text-licorice-800 m-5 rounded-full"
                                 type="search"
                                 onChange={e => handleChange(e.target.value)}
                                 placeholder="Search for Games..."
