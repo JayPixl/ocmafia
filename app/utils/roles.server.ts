@@ -301,7 +301,7 @@ export const getActionOptions: (
     const currentPhase = await prisma.phase.findFirst({
         where: {
             gameId: game.id,
-            dayNumber: lastPhase.time === "DAY" ? lastPhase.dayNumber : (lastPhase.dayNumber++),
+            dayNumber: lastPhase.time === "DAY" ? lastPhase.dayNumber : (lastPhase.dayNumber + 1),
             time: lastPhase.time === "DAY" ? "NIGHT" : "DAY"
         }
     })

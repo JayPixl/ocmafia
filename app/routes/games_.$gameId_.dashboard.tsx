@@ -51,6 +51,8 @@ export const action: ActionFunction = async ({ request, params }) => {
             const characterId = form.get('characterId') as string
             const phaseId = form.get('phaseId') as string
 
+            console.log(phaseId)
+
             let i: number = 0
             let actions: { actionType: ActionType, actionId?: string, actionTargetId: string, actionStrategy?: string }[] = []
 
@@ -143,6 +145,8 @@ export default function Dashboard() {
 
     const [inputs, setInputs] = useState({ notes: myRole?.notes || '' })
     const [actionsInput, setActionsInput] = useState(actions)
+
+    console.log(actionPhaseId)
 
     return (
         <Layout
