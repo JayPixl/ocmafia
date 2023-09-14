@@ -33,13 +33,13 @@ export const loader: LoaderFunction = async ({ request }) => {
         take: 3
     })
 
-    const currentlyHostingGames = await prisma.game.findMany({
+    const currentlyHostingGames = user ? await prisma.game.findMany({
         where: {
             id: {
                 in: (await prisma.user.findFirst({ where: { id: user?.id }, select: { hostingGameIds: true } }))?.hostingGameIds
             }
         }
-    })
+    }) : []
 
     const { activeCharacter, error } = user ? await userHasActiveCharacter(user.id) : { activeCharacter: undefined, error: undefined }
     const { game } = activeCharacter && !error ? await getGameById(activeCharacter.currentGameId!) : { game: undefined }
