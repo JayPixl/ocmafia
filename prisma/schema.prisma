@@ -25,12 +25,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt()
 
-  characters    Character[] @relation("OwnedCharacters")
-  activeGame    Game?       @relation(references: [id], fields: [activeGameId], "PlayerParticipant")
-  activeGameId  String?     @db.ObjectId
-  hostingGame   Game?       @relation(references: [id], fields: [hostingGameId], "GameHosts")
-  hostingGameId String?     @db.ObjectId
-  inbox         Inbox?      @relation("Inbox")
+  characters     Character[] @relation("OwnedCharacters")
+  activeGame     Game?       @relation(references: [id], fields: [activeGameId], "PlayerParticipant")
+  activeGameId   String?     @db.ObjectId
+  hostingGames   Game[]      @relation(references: [id], fields: [hostingGameIds], "GameHosts")
+  hostingGameIds String[]    @db.ObjectId
+  inbox          Inbox?      @relation("Inbox")
 
   followedBy    User[]   @relation("UserFollows", fields: [followedByIDs], references: [id])
   followedByIDs String[] @db.ObjectId
@@ -103,11 +103,14 @@ model Game {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt()
 
+  mainHostId String?
+
   currentPhaseId            String?
   phases                    Phase[]               @relation("GamePhases")
   currentDay                Int?                  @default(1)
   characterStatuses         GameCharacterStatus[]
-  hosts                     User[]                @relation("GameHosts")
+  hosts                     User[]                @relation(references: [id], fields: [hostIds], "GameHosts")
+  hostIds                   String[]              @db.ObjectId
   participatingCharacters   Character[]           @relation(fields: [participatingCharacterIds], references: [id], "CharacterParticipant")
   participatingCharacterIds String[]              @db.ObjectId
   participatingPlayers      User[]                @relation("PlayerParticipant")

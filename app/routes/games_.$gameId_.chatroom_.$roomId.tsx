@@ -109,7 +109,8 @@ export default function ChatRoom() {
     const [inputs, setInputs] = useState({ message: '' })
     const [messages, setMessages] = useState<GameChatMessage[]>([])
     const [sending, setSending] = useState<boolean>(false)
-    const [chatroomsOpen, setChatroomsOpen] = useState(true)
+    const [chatroomsOpen, setChatroomsOpen] = useState(false)
+    const [userInfo, setUserInfo] = useState<any>({})
     //const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
 
     const formRef = useRef<HTMLFormElement>(null)
@@ -119,23 +120,9 @@ export default function ChatRoom() {
         window.scrollTo(0, document.documentElement.scrollHeight)
     }, [])
 
-    // useEffect(() => {
-    //     const timer = setInterval(() => {
-    //         const queryParams = new URLSearchParams
-    //         queryParams.set('lastUpdate', lastUpdate.toISOString())
-    //         fetch(`/games/${params.gameId}/chatroom/${params.roomId}/get-messages?${queryParams}`)
-    //             .then(res => res.json())
-    //             .then(data => {
-    //                 if (data?.messages?.length !== 0) {
-    //                     getMessages()
-    //                 }
-    //             })
-    //     }, 1000)
-
-    //     return () => {
-    //         clearInterval(timer)
-    //     }
-    // }, [])
+    useEffect(() => {
+        getUserInfo()
+    }, [messages])
 
     const getMessages: () => void = () => {
         fetch(`/games/${params.gameId}/chatroom/${params.roomId}/get-messages`)
@@ -144,12 +131,75 @@ export default function ChatRoom() {
                 if (data.messages) {
                     setMessages(l => data.messages)
                     window.scrollTo(0, document.documentElement.scrollHeight)
-                    //setLastUpdate(new Date(messages[messages.length - 1]?.createdAt || undefined))
                 }
             })
     }
 
-    const { user, type, character, chatrooms, authorized } = useLiveLoader<typeof loader>(`/sse/chatroom/${params.roomId}`, "update", getMessages)
+    const getUserInfo: () => void = () => {
+        let newUsers: string[] = []
+        let newCharacters: string[] = []
+        messages.map(
+            message => {
+                if (
+                    !userInfo?.[message.senderId] &&
+                    !newUsers.includes(message.senderId) &&
+                    !newCharacters.includes(message.senderId)
+                ) {
+                    ["HOST_USER", "SPECTATOR_USER"].includes(message.senderType) ?
+                        newUsers.push(message.senderId) :
+                        newCharacters.push(message.senderId)
+                }
+            }
+        )
+
+        console.log(`NEW ONES: ${newUsers} ${newCharacters}`)
+
+        newUsers.map(id => {
+            console.log(`START ${id}`)
+            fetch(`/fetch/users?id=${id}&returnUsernames=true&returnAvatars=true`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data?.results?.[0]) {
+                        console.log(`RESULT: ${data.results[0].username}`)
+                        setUserInfo((i: any) => {
+                            return {
+                                ...i,
+                                [id]: {
+                                    avatarUrl: data.results[0].avatar?.avatarUrl || undefined,
+                                    name: data.results[0].username
+                                }
+                            }
+                        })
+                    }
+                })
+            console.log(`END ${id}`)
+        })
+
+        newCharacters.map(id => {
+            console.log(`START ${id}`)
+            fetch(`/fetch/characters?id=${id}&returncharacternames=true`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data?.results?.[0]) {
+                        console.log(`RESULT: ${data.results[0].name}`)
+                        setUserInfo((i: any) => {
+                            return {
+                                ...i,
+                                [id]: {
+                                    avatarUrl: data.results[0]?.avatarUrl || undefined,
+                                    name: data.results[0].name
+                                }
+                            }
+                        })
+                    }
+                })
+            console.log(`END ${id}`)
+        })
+
+        console.log(JSON.stringify(userInfo))
+    }
+
+    const { user, type, character, chatrooms, authorized } = useLiveLoader<typeof loader>(`/sse/chatroom/${params.roomId}`, "update", () => getMessages())
 
 
     const submitMessage: (e?: React.FormEvent<HTMLFormElement>) => void = (e) => {
@@ -219,14 +269,14 @@ export default function ChatRoom() {
                 <Link to={message.senderProfileLink || "#"}>
                     <CharacterAvatar
                         size="MEDIUM"
-                        avatarUrl={message?.senderAvatarUrl || undefined}
+                        avatarUrl={userInfo?.[message.senderId]?.avatarUrl || message?.senderAvatarUrl || undefined}
                     />
                 </Link>
                 <div className="flex flex-col pl-3">
 
                     <div className="text-lg font-semibold flex flex-row items-center">
                         <Link to={message.senderProfileLink || "#"}>
-                            <div>{message?.senderName || "Anonymous"}</div>
+                            <div>{userInfo?.[message.senderId]?.name || message?.senderName || "Anonymous"}</div>
                         </Link>
                         <div className="font-light italic text-sm ml-3">{new Date(message.createdAt).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</div>
 
@@ -284,7 +334,7 @@ export default function ChatRoom() {
                     className="bg-transparent border-none resize-none w-full sm:text-lg md:text-xl focus:ring-0 focus-visible:ring-0 outline-none"
                 />}
 
-                <button type="submit" disabled={type === "SPECTATOR"}>
+                <button type="submit" disabled={type === "SPECTATOR" || sending}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-slate-200">
                         <path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" />
                     </svg>

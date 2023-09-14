@@ -40,20 +40,20 @@ export const getProfileData: (request: Request, params: Params) => Promise<{
         }
     }))
 
-    const following = (await prisma.user.findMany({
+    const following = user?.id ? (await prisma.user.findMany({
         where: {
             id: data?.id,
             followedByIDs: {
                 hasSome: user?.id
             }
         }
-    }))
+    })) : []
 
     return {
         user,
         owner: data?.username === user?.username,
         profileData: data,
-        following: following.length !== 0
+        following: following?.length !== 0
     }
 }
 

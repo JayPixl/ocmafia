@@ -2,33 +2,16 @@ import { GameCharacterStatus, PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 async function main() {
     let updates: any[] = [];
-    (await prisma.phase.findMany()).map(async phase => {
+    (await prisma.game.findMany()).map(async game => {
 
-        const actions = await prisma.phaseActions.findUnique({
+        const update = await prisma.game.update({
             where: {
-                phaseId: phase.id
-            }
-        })
-
-        const update = await prisma.phase.update({
-            where: {
-                id: phase.id,
+                id: game.id,
 
             },
             data: {
-                actions: {
-                    upsert: {
-                        create: {
-                            actions: {
-                                set: []
-                            }
-                        },
-                        update: {
-                            actions: {
-                                set: actions ? actions.actions : []
-                            }
-                        }
-                    }
+                hosts: {
+                    set: []
                 }
             }
         })

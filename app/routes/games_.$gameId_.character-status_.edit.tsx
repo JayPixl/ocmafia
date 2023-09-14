@@ -136,7 +136,7 @@ export default function EditStatus() {
 
             <div className="w-full flex flex-col bg-dogwood text-licorice-800 rounded-lg p-5">
 
-                {selectedPhase?.characterStatus?.status?.length !== 0 ? selectedPhase?.characterStatus?.status?.map((status, index) => <form method="POST" className={`${index !== 0 ? 'border-t-2 border-licorice-800' : ''} flex flex-row items-center py-3 w-full justify-between`} key={status.characterId}>
+                {selectedPhase?.characterStatus?.status?.length !== 0 ? selectedPhase?.characterStatus?.status?.map((status, index) => <form method="POST" className={`${index !== 0 ? 'border-t-2 border-licorice-800' : ''} flex flex-col md:flex-row items-center py-3 w-full justify-between`} key={status.characterId}>
 
                     <input
                         type="hidden"
@@ -158,7 +158,7 @@ export default function EditStatus() {
                         />
 
                         <div className="mx-4 font-bold text-xl flex flex-col">
-                            <div>{status.characterName} ({gameRoles.assignedRoles.filter((role: any) => role.characterId === status.characterId)[0]?.roleName || "Role not set!"})</div>
+                            <div className="flex flex-col md:flex-row"><div>{status.characterName}</div> <div>({gameRoles.assignedRoles.filter((role: any) => role.characterId === status.characterId)[0]?.roleName || "Role not set!"})</div></div>
                             {gameActions?.filter((actions: PhaseActions) => actions.phaseId === inputs.phaseId)[0]?.actions?.filter((action: any) => action.characterId === status.characterId)?.map((phaseAction: any) => <div key={v4()} className="flex flex-col">
                                 <div>Action Type: <span className="font-normal">{phaseAction.actionType}</span></div>
                                 <div>Target: <span className="font-normal">{characters.filter((char: CharacterWithMods) => char.id === phaseAction?.actionTargetId)[0]?.name || phaseAction.actionTargetId}</span></div>
@@ -176,7 +176,7 @@ export default function EditStatus() {
                             [status.characterId]: e.target.value
                         })}
                         className={
-                            `bg-opacity-[1%] bg-licorice-600 font-bold text-xl rounded-lg py-1 hover:opacity-80`
+                            `bg-opacity-[1%] bg-licorice-600 font-bold text-xl rounded-lg py-3 md:py-1 hover:opacity-80`
                         }
                     >
                         {Object.values(GameCharacterStatus).map(status => <option value={status} key={status}>

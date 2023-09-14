@@ -205,25 +205,40 @@ export const requireHost: (
 ) => Promise<{
     error?: string,
     authorized: boolean,
-    admin?: boolean
+    admin?: boolean,
+    gm?: boolean
 }> = async (request, gameId) => {
-    const { user, error, authorized } = await requireClearance(request, "ADMIN")
+    const { user, authorized } = await requireClearance(request, "ADMIN")
     if (authorized) return { authorized, admin: true }
     if (!user) return { error: "Could not find user", authorized: false }
 
-    const result = await prisma.game.findFirst({
+    const game = await prisma.game.findFirst({
         where: {
-            id: gameId,
+            id: gameId
+        },
+        select: {
+            id: true,
+            mainHostId: true,
             hosts: {
-                some: {
-                    id: user.id
+                select: {
+                    id: true,
+                    username: true,
+                    avatar: true
                 }
             }
         }
     })
 
-    if (!result) return { error: "You are not a host for this game", authorized: false }
-    return { authorized: true }
+    if (user.id === game?.mainHostId) return {
+        authorized: true,
+        gm: true
+    }
+
+    if (game?.hosts.map(host => host.id).includes(user.id)) return {
+        authorized: true
+    }
+
+    return { error: "You are not a host for this game", authorized: false }
 }
 
 export const editGame: (
@@ -292,25 +307,15 @@ export const manageHosts: (
             (await prisma.user.findFirst({
                 where: {
                     id: host.id,
-                    hostingGameId: game.id
+                    hostingGameIds: {
+                        hasSome: game.id
+                    }
                 }
             }))
         ) return {
             error: "This host is already added!"
         }
 
-        if (
-            (await prisma.user.findFirst({
-                where: {
-                    id: host.id
-                },
-                select: {
-                    hostingGameId: true
-                }
-            }))?.hostingGameId
-        ) return {
-            error: "This host is hosting another game!"
-        }
         const result = await prisma.game.update({
             where: {
                 id: game.id
@@ -467,7 +472,7 @@ export const manageCharacters: (
             }
             );
 
-            (await prisma.user.findMany({ where: { hostingGameId: game.id } })).map(async host => {
+            (await prisma.user.findMany({ where: { hostingGameIds: { hasSome: game.id } } })).map(async host => {
                 await sendMessage(process.env.OCM_OFFICIAL_ID || '', host.id, `${character?.name} has joined ${game.name}!`, 'PLAYER_JOINED', `/games/${game.id}/`)
             })
 

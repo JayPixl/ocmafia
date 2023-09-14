@@ -41,7 +41,7 @@ export default function Slideshow({ elements }: props) {
     return <div className="m-0 overflow-hidden max-w-full relative">
         <div className="whitespace-nowrap transition h-[18rem] sm:h-[22rem] md:h-[35rem]" style={{ transform: `translate3d(${-index * 100}%, 0, 0)` }}>
             {elements.map(elem => <div
-                key={v4()}
+                key={v4().substring(0, 10)}
                 style={{ backgroundImage: `url(${elem.imageUrl})` }}
                 className="bg-cover bg-center inline-block h-full w-full"
             >
@@ -52,15 +52,13 @@ export default function Slideshow({ elements }: props) {
         </div>
 
         <div className="absolute bottom-3 w-full flex flex-row justify-center items-center">
-            {elements.map((elem, idx) => <>
-                <div
-                    key={idx}
-                    className={`m-2 ${idx === index ? "bg-slate-600 w-5 h-5" : 'bg-slate-400 w-4 h-4'} rounded-full border-2 border-slate-600 transition cursor-pointer shadow-lg`}
-                    onClick={() => {
-                        setIndex(idx);
-                    }}
-                />
-            </>)}
+            {elements.map((elem, idx) => <div
+                key={idx}
+                className={`m-2 ${idx === index ? "bg-slate-600" : 'bg-slate-400'} w-4 h-4 rounded-full border-2 border-slate-600 transition cursor-pointer shadow-lg`}
+                onClick={() => {
+                    setIndex(idx);
+                }}
+            />)}
         </div>
 
         {elements[index].credit ? <div className="absolute bottom-2 right-2 z-10 text-xs md:text-sm italic underline hover:no-underline">

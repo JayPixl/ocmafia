@@ -7,6 +7,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     const username = searchParams.get("username") || undefined
     const returnUsernames = searchParams.get("returnUsernames") || undefined
     const returnCharacters = searchParams.get("returnCharacters") || undefined
+    const returnAvatars = searchParams.get("returnAvatars") || undefined
 
     const { results, error } = await getFilteredUserData({
         id,
@@ -16,6 +17,7 @@ export const loader: LoaderFunction = async ({ request }) => {
             id: true,
             username: returnUsernames ? true : false,
             characters: returnCharacters ? true : false,
+            avatar: returnAvatars ? true : false,
         }, 5)
 
     return json({ results, error })

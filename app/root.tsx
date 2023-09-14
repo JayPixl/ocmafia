@@ -1,4 +1,4 @@
-import { cssBundleHref } from "@remix-run/css-bundle";
+//import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction, V2_MetaFunction } from "@remix-run/node";
 import {
   Link,
@@ -30,7 +30,7 @@ export const links: LinksFunction = () => [
   ...googleFonts,
   { rel: "stylesheet", href: stylesheet },
   { rel: "icon", href: '/images/ocm_website_icon.ico' },
-  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
+  // ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
 
 export const meta: V2_MetaFunction = () => {

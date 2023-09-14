@@ -13,8 +13,15 @@ export const loader: LoaderFunction = async ({ request }) => {
         {
             id: true,
             name: true,
+            location: true,
             playerCount: true,
-            participatingCharacterIds: true
+            participatingCharacterIds: true,
+            status: true,
+            winnerCrowns: true,
+            winnerRubies: true,
+            loserRubies: true,
+            loserStrikes: true,
+            mainHostId: true
         }, 5)
 
 

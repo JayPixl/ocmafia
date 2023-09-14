@@ -6,11 +6,7 @@ export const getFilteredUserData: (
         username?: string,
         id?: string
     },
-    select: {
-        id?: boolean,
-        username?: boolean,
-        characters?: boolean
-    },
+    select: Prisma.UserSelect,
     take?: number,
 ) => Promise<{
     results?: any[],
@@ -21,26 +17,36 @@ export const getFilteredUserData: (
     }
     const where: Prisma.UserWhereInput = filters?.username ? {
         ...filters,
-        username: {
-            contains: filters.username,
-            mode: "insensitive"
-        }
+        ...(filters.username ? {
+            username: {
+                contains: filters.username,
+                mode: "insensitive"
+            }
+        } : {})
     } : {
         ...filters
     }
 
-    const results = await prisma.user.findMany({
-        take,
-        where,
-        select
-    })
+    try {
+        const results = await prisma.user.findMany({
+            take,
+            where,
+            select
+        })
 
-    if (!results) return {
-        error: "Could not retrieve user data"
+        if (!results) return {
+            error: "Could not retrieve user data"
+        }
+        return {
+            results
+        }
+    } catch (e) {
+        return {
+            error: "Error while fetching"
+        }
     }
-    return {
-        results
-    }
+
+
 }
 
 export const getFilteredCharacterData: (
