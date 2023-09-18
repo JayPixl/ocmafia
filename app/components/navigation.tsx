@@ -46,7 +46,7 @@ export default function Navigation({ navOpen, navArray }: { navOpen: boolean, na
                 </div>
             </div>
             {navOpen && (
-                <div className="block md:hidden w-full p-5 bg-slate-300 fixed top-12 z-10 text-slate-800">
+                <div className="block md:hidden w-full p-5 bg-slate-300 fixed top-12 z-30 text-slate-800">
                     {navArray && navArray[0].id === 'archive' ? buildNav() : (
                         <Navlink slug='/archive' display="Archive" size='XL' />
                     )}

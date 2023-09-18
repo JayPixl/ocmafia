@@ -152,10 +152,7 @@ export default function ChatRoom() {
             }
         )
 
-        console.log(`NEW ONES: ${newUsers} ${newCharacters}`)
-
         newUsers.map(id => {
-            console.log(`START ${id}`)
             fetch(`/fetch/users?id=${id}&returnUsernames=true&returnAvatars=true`)
                 .then(res => res.json())
                 .then(data => {
@@ -172,11 +169,9 @@ export default function ChatRoom() {
                         })
                     }
                 })
-            console.log(`END ${id}`)
         })
 
         newCharacters.map(id => {
-            console.log(`START ${id}`)
             fetch(`/fetch/characters?id=${id}&returncharacternames=true`)
                 .then(res => res.json())
                 .then(data => {
@@ -193,10 +188,7 @@ export default function ChatRoom() {
                         })
                     }
                 })
-            console.log(`END ${id}`)
         })
-
-        console.log(JSON.stringify(userInfo))
     }
 
     const { user, type, character, chatrooms, authorized } = useLiveLoader<typeof loader>(`/sse/chatroom/${params.roomId}`, "update", () => getMessages())

@@ -249,13 +249,6 @@ export default function EditReports() {
                         >
                             {selectedPhase?.events?.length && selectedPhase?.events?.every(val => val.draft === false) ? 'Unpublish Phase' : 'Publish Phase'}
                         </button>
-
-                        <Link
-                            to={`/games/${params.gameId}/character-status/edit`}
-                            className="text-xl border-[1px] border-dogwood text-dogwood rounded-lg py-1 px-2 hover:bg-bittersweet hover:border-bittersweet hover:text-white transition md:text-2xl"
-                        >
-                            Edit Character Status
-                        </Link>
                     </form>
                 </div>
 

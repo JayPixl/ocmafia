@@ -13,9 +13,9 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     const { game } = await getGameById(params.gameId || '')
     if (!game) return redirect('/games')
 
-    const { authorized, admin } = await requireHost(request, game.id)
-    if (!authorized) return redirect(`/games/${params.gameId}`)
-    return json({ user, game, admin })
+    const { gm } = await requireHost(request, game.id)
+    if (!gm) return redirect(`/games/${params.gameId}`)
+    return json({ user, game, gm })
 }
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -103,14 +103,14 @@ export default function EditGameHosts() {
                         <div className="font-semibold">
                             {item?.username || item?.name}
                         </div>
-                        <button
+                        {game?.mainHostId !== item.id && <button
                             type="submit"
                             name="_action"
                             value={item.id}
                             className="text-bittersweet underline hover:no-underline ml-3"
                         >
                             Remove
-                        </button>
+                        </button>}
                     </div>
                 ))
             }

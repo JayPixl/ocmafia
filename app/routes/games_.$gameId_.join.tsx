@@ -10,7 +10,7 @@ import { getUser } from "~/utils/users.server";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
     const { user } = await getUser(request)
-    if (!user) return redirect(`/games/${params.gameId}`)
+    if (!user) return redirect(`/login`)
 
     const { game } = await getGameById(params.gameId || '')
     if (!game || game.status !== 'ENLISTING') return redirect(`/games/${params.gameId}`)

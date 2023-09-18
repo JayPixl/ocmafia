@@ -7,7 +7,8 @@ import { sendMessage } from "./inbox.server"
 export const createGame: (form: {
     gameName: string,
     location: string,
-    playerCount: number
+    playerCount: number,
+    mainHostId: string
 }) => Promise<{
     error?: string,
     newGame?: Game
@@ -17,6 +18,12 @@ export const createGame: (form: {
             name: form.gameName,
             location: form.location,
             playerCount: form.playerCount,
+            mainHostId: form.mainHostId,
+            hosts: {
+                connect: {
+                    id: form.mainHostId
+                }
+            },
             phases: {
                 create: {
                     time: 'DAY',

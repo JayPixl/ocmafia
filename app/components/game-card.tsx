@@ -61,7 +61,7 @@ export default function GameCard({ game }: props) {
         <Link
             to={`/games/${game.id}`}
             className="block md:hidden relative hover:scale-105 transition bg-cover bg-center m-3 w-full h-64 rounded-xl text-slate-950 border-2 border-slate-950"
-            style={{ backgroundImage: "url(https://cdn.pixabay.com/photo/2015/12/03/08/50/paper-1074131_1280.jpg)" }}
+            style={{ backgroundImage: "url(https://res.cloudinary.com/dvs0gmvvc/image/upload/v1694789364/paper-1074131_1280_qogjo2.jpg)" }}
             key={game.id}
         >
             <div className="w-full h-full backdrop-blur-[2px] p-3 flex flex-col">

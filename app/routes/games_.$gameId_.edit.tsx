@@ -17,7 +17,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     const { game } = await getGameById(params.gameId || '')
     if (!game) return redirect('/games')
 
-    const { authorized, admin } = await requireHost(request, game.id)
+    const { authorized, admin, gm } = await requireHost(request, game.id)
     if (!authorized) return redirect(`/games/${params.gameId}`)
 
     const assignedRoles = await prisma.gameRoles.findUnique({
@@ -52,7 +52,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         }
     })
 
-    return json({ user, game, admin, assignedRoles, invitedCharacters, requestedCharacters })
+    return json({ user, game, admin, assignedRoles, invitedCharacters, requestedCharacters, gm })
 }
 
 export default function EditGame() {
@@ -145,9 +145,9 @@ export default function EditGame() {
                             <div className="ml-5 font-bold flex flex-row items-center">{game?.winnerCrowns}👑 {game?.winnerRubies}💎 / {game?.loserStrikes}❌ {game?.loserRubies}💎 <EditButton link={`/games/${params.gameId}/edit/awards`} /></div>
                         </div>
                         <div className="py-2 text-lg w-full">
-                            <div className="font-semibold text-xl flex flex-row items-center">Hosts: <EditButton link={`/games/${params.gameId}/edit/hosts`} /></div>
+                            <div className="font-semibold text-xl flex flex-row items-center">Hosts: {user?.id === game?.mainHostId && <EditButton link={`/games/${params.gameId}/edit/hosts`} />}</div>
                             <div className="ml-5 flex flex-col">{game?.hosts?.map(host => <Link to={`/profile/${host.slug}`} key={host.id}>
-                                @{host.username}
+                                @{host.username} {host.id === game.mainHostId ? "- GM" : ""}
                             </Link>)}
                                 {game?.hosts?.length === 0 && <div className="text-bittersweet">None</div>}
                             </div>
